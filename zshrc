@@ -28,10 +28,11 @@ add-zsh-hook precmd pre_vcs_info
 
 vcs_info_msg_0_="A"
 PROMPT=""
-PROMPT+="%{${fg[red]}%}[%*]%{${reset_color}%}"  # timestamp
+PROMPT+="%{$fg[red]%}[%*]%{$reset_color%}"  # timestamp
+PROMPT+=" %{$fg[cyan]%}$HOST%{$reset_color%}"  # host
 PROMPT+=" %?"  # status
 PROMPT+=' ${vcs_info_msg_0_}'  # Zsh VCS
-PROMPT+=" %{${fg[green]}%}%~%{${reset_color}%}"  # current directory
+PROMPT+=" %{$fg[green]%}%~%{$reset_color%}"  # current directory
 PROMPT+="
 %% "  # shell
 
