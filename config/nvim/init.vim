@@ -107,18 +107,18 @@ endif
 let g:tex_flavor = "latex"
 
 " clipboard
-"if stridx(system('uname -r'), 'microsoft')
-"  let g:clipboard = {
-"          \   'name': 'win32yank',
-"          \   'copy': {
-"          \      '+': '/mnt/c/Users/rex/Applications/win32yank/win32yank.exe -i',
-"          \    },
-"          \   'paste': {
-"          \      '+': '/mnt/c/Users/rex/Applications/win32yank/win32yank.exe -o',
-"          \   },
-"          \   'cache_enabled': 0,
-"          \ }
-"endif
+if stridx(system('uname -r'), 'microsoft')
+  let g:clipboard = {
+          \   'name': 'win32yank',
+          \   'copy': {
+          \      '+': '/mnt/c/Users/rex/Applications/win32yank/win32yank.exe -i',
+          \    },
+          \   'paste': {
+          \      '+': '/mnt/c/Users/rex/Applications/win32yank/win32yank.exe -o',
+          \   },
+          \   'cache_enabled': 0,
+          \ }
+endif
 
 " }}}
 

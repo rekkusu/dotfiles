@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 cd `dirname $0`
 
 if [[ ! -e $HOME/.zshrc ]]; then
@@ -18,13 +18,11 @@ fi
 
 # for WSL
 if [[ `uname -r` =~ .*WSL.* ]]; then
-  if [[ -z WINHOME ]];
+  if [[ -z WINHOME ]]; then
     export WINHOME=/mnt/c/Users/rex
   fi
 
   cp "$WINHOME/Application Data/wsltty/config" "$WINHOME/Application Data/wsltty/config.bak"
   cp wsl/wsltty/config "$WINHOME/Application Data/wsltty/config"
-
-  cp "$WINHOME/Application Data/wsltty/config" "$WINHOME/Application Data/wsltty/config.bak"
-  cp wsl/wsltty/themes/favorite "$WINHOME/Application Data/wsltty/config"
+  cp wsl/wsltty/themes/favorite "$WINHOME/Application Data/wsltty/themes/favorite"
 fi

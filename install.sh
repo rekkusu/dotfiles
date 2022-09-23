@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 PYTHON_VERSION=3.10.2
 
@@ -6,6 +6,15 @@ PACKAGES=(
   # required
   socat
   git
+
+  # python build
+  zlib1g-dev
+  libreadline-dev
+  libsqlite3-dev
+  libbz2-dev
+  libffi-dev
+  libssl-dev
+  liblzma-dev
 
   # optional
   build-essential
@@ -50,12 +59,16 @@ sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
 echo "[+] Install NeoVim"
 wget -O $HOME/nvim https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
-chmod u+x $HOME/nvim
+mkdir -p $HOME/appimage
+chmod u+x $HOME/appimage/nvim
 
 
 echo "[+] Install pyenv"
 git clone https://github.com/pyenv/pyenv.git ~/.pyenv
+export PYENV_ROOT=$HOME/.pyenv
+export PATH=$PYENV_ROOT/bin:$PATH
 eval "$(pyenv init -)"
+git clone https://github.com/pyenv/pyenv-virtualenv.git $(pyenv root)/plugins/pyenv-virtualenv
 eval "$(pyenv virtualenv-init -)"
 pyenv install $PYTHON_VERSION
 

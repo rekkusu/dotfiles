@@ -11,6 +11,12 @@ function add_path {
   path=($1 $path)
 }
 
+function add_path_if_exists {
+  if [[ -e $1 ]]; then
+    add_path $1
+  fi
+}
+
 function _installed {
   return $(whence $1 &> /dev/null)
 }
@@ -64,13 +70,23 @@ HISTSIZE=10000
 SAVEHIST=10000
 HISTFILE=~/.zsh_history
 
-# Use modern completion system
-autoload -Uz compinit
-compinit
+autoload -Uz compinit && compinit
+
+zstyle ':completion:*' completer _complete _prefix
+zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z} r:|[-_.]=**'
 
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
 zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
 
+setopt auto_pushd
+setopt pushd_ignore_dups
+zstyle ':completion:*' menu select
+zstyle ':completion:*:cd:*' ignore-parents parent pwd
+
+# enable completion after equals
+setopt magic_equal_subst
+
+# aliases
 alias ls='ls --color'
 
 if _installed fcitx; then
@@ -80,16 +96,16 @@ if _installed fcitx; then
   export DefaultIMModule=fcitx
 fi
 
-add_path $HOME/bin
-add_path $HOME/appimage
+add_path_if_exists $HOME/bin
+add_path_if_exists $HOME/appimage
 
 if _installed nvim; then
   export EDITOR='nvim'
 fi
 
 # nodebrew
+add_path_if_exists $HOME/.nodebrew/current/bin
 if _installed nodebrew; then
-  add_path $HOME/.nodebrew/current/bin
 fi
 
 # wsl2-ssh-pageant
@@ -115,15 +131,12 @@ if [[ `uname -r` =~ .*WSL.* ]]; then
 fi
 
 ### Google depot_tools
-if _installed depot_tools; then
-  export PATH=$HOME/src/depot_tools:$PATH
-fi
-
+add_path_if_exists $HOME/src/depot_tools
 
 ### Go
 if _installed go; then
   export GOPATH=$HOME/go
-  add_path $GOPATH/bin
+  add_path_if_exists $GOPATH/bin
 fi
 
 #### asdf
@@ -132,7 +145,11 @@ if [[ -e "$HOME/.asdf/asdf.sh" ]]; then
 fi
 
 ### pyenv
+add_path_if_exists $HOME/.pyenv/bin
 if _installed pyenv; then
   eval "$(pyenv init -)"
   eval "$(pyenv virtualenv-init -)"
 fi
+
+if [ -e /home/rex/.nix-profile/etc/profile.d/nix.sh ]; then . /home/rex/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
+
