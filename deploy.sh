@@ -11,7 +11,7 @@ if [[ ! -d $HOME/.config/nvim ]]; then
   echo "[+] Created symlink of .config/nvim"
 fi
 
-if [[ ! -d $HOME/.tmux.conf ]]; then
+if [[ ! -e $HOME/.tmux.conf ]]; then
   ln -sr ./tmux.conf $HOME/.tmux.conf
   echo "[+] Created symlink of .tmux.conf"
 fi
@@ -25,4 +25,6 @@ if [[ `uname -r` =~ .*WSL.* ]]; then
   cp "$WINHOME/Application Data/wsltty/config" "$WINHOME/Application Data/wsltty/config.bak"
   cp wsl/wsltty/config "$WINHOME/Application Data/wsltty/config"
   cp wsl/wsltty/themes/favorite "$WINHOME/Application Data/wsltty/themes/favorite"
+
+  cp wsl/alacritty/alacritty.yml "$WINHOME/AppData/Roaming/alacritty"
 fi

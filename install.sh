@@ -1,7 +1,7 @@
 #!/bin/bash
 
 PYTHON_VERSION=3.10.2
-
+APPIMAGE_DIR=$HOME/appimage
 PACKAGES=(
   # required
   socat
@@ -41,7 +41,6 @@ if [[ `uname -r` =~ .*WSL.* ]]; then
   fi
 
   setsid nohup socat UNIX-LISTEN:$SSH_AUTH_SOCK,fork EXEC:"$WSL2_SSH_PAGEANT -logfile /dev/null" >/dev/null 2>&1 &
-
 fi
 
 
@@ -58,9 +57,9 @@ sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
 
 echo "[+] Install NeoVim"
-wget -O $HOME/nvim https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
-mkdir -p $HOME/appimage
-chmod u+x $HOME/appimage/nvim
+mkdir -p $APPIMAGE_DIR
+wget -O $APPIMAGE_DIR/nvim https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
+chmod u+x $APPIMAGE_DIR/nvim
 
 
 echo "[+] Install pyenv"
