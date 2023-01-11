@@ -6,6 +6,10 @@ autoload -Uz vcs_info
 autoload -Uz add-zsh-hook
 setopt prompt_subst
 
+function _installed {
+  return $(whence $1 &> /dev/null)
+}
+
 typeset -U path PATH
 function add_path {
   path=($1 $path)
@@ -20,6 +24,7 @@ function add_path_if_exists {
 function _installed {
   return $(whence $1 &> /dev/null)
 }
+
 
 zstyle ':vcs_info:git:*' check-for-changes true
 zstyle ':vcs_info:git:*' stagedstr "%{$fg[yellow]%}!%{$reset_color%}"
@@ -116,15 +121,18 @@ function start-agent() {
     (setsid nohup socat UNIX-LISTEN:$SSH_AUTH_SOCK,fork EXEC:"$HOME/.ssh/wsl2-ssh-pageant.exe -logfile /dev/null" >/dev/null 2>&1 &)
   fi
 
+  WIN_GPGSOCK_BASE='C:/Users/rex/AppData/Local/gnupg'
   ss -a | grep -q $GPG_AGENT_SOCK
   if [ $? -ne 0 ]; then
     rm -rf $GPG_AGENT_SOCK
-    (setsid nohup socat UNIX-LISTEN:$GPG_AGENT_SOCK,fork EXEC:"$HOME/.ssh/wsl2-ssh-pageant.exe -logfile /dev/null --gpg S.gpg-agent" >/dev/null 2>&1 &)
+    (setsid nohup socat UNIX-LISTEN:$GPG_AGENT_SOCK,fork EXEC:"$HOME/.ssh/wsl2-ssh-pageant.exe -logfile /dev/null -gpg S.gpg-agent -gpgConfigBasepath '$WIN_GPGSOCK_BASE'" >/dev/null 2>&1 &)
+    #(setsid nohup socat UNIX-LISTEN:$GPG_AGENT_SOCK,fork EXEC:"$HOME/bin/npiperelay.exe -ei -ep -s -a \"C:/Users/rex/AppData/Local/gnupg/S.gpg-agent\"",nofork  > /dev/null 2>&1 &)
   fi
 }
 
 if [[ `uname -r` =~ .*WSL.* ]]; then
-  export WINHOME=/mnt/c/Users/rex
+  export WINUSER=`whoami.exe | nkf -Lu | sed -r 's/^\S+\\\\//g'`
+  export WINHOME=/mnt/c/Users/$WINUSER
   export SSH_AUTH_SOCK=$HOME/.ssh/agent.sock
   export GPG_AGENT_SOCK=$HOME/.gnupg/S.gpg-agent
   start-agent
@@ -153,3 +161,5 @@ fi
 
 if [ -e /home/rex/.nix-profile/etc/profile.d/nix.sh ]; then . /home/rex/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
 
+
+add_path_if_exists $HOME/.local/share/solana/install/active_release/bin

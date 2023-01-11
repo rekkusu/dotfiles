@@ -26,5 +26,6 @@ if [[ `uname -r` =~ .*WSL.* ]]; then
   cp wsl/wsltty/config "$WINHOME/Application Data/wsltty/config"
   cp wsl/wsltty/themes/favorite "$WINHOME/Application Data/wsltty/themes/favorite"
 
-  cp wsl/alacritty/alacritty.yml "$WINHOME/AppData/Roaming/alacritty"
+  mkdir -p "$WINHOME/AppData/Roaming/alacritty"
+  cp wsl/alacritty/alacritty.yml "$WINHOME/AppData/Roaming/alacritty/alacritty.yml"
 fi
