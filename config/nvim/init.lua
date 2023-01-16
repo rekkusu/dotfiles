@@ -1,6 +1,8 @@
 
 vim.g.mapleader = ' '
 vim.g.python3_host_prog = '/usr/bin/python3'
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
@@ -27,7 +29,8 @@ require("lazy").setup({
         priority = 1000,
         config = function()
             vim.cmd('colorscheme moonfly')
-            vim.cmd('highlight! link CmpItemAbbr MoonflyWhite')
+            vim.api.nvim_set_hl(0, 'CmpItemAbbr', { link = 'MoonflyWhite' })
+            vim.api.nvim_set_hl(0, 'NormalNC', { bg = '#282828', fg = '#cccccc' })
         end,
     },
 
@@ -37,13 +40,63 @@ require("lazy").setup({
         opts = {
             options = {
                 theme = 'auto',
-                icons_enabled = false,
-                component_separators = '',
-                section_separators = '',
+                icons_enabled = true,
             },
         },
+        dependencies = {
+            'nvim-tree/nvim-web-devicons',
+        },
     },
-
+    {
+        'akinsho/bufferline.nvim',
+        opts = {},
+        dependencies = {
+            'nvim-tree/nvim-web-devicons',
+        },
+    },
+    {
+        'nvim-tree/nvim-tree.lua',
+        lazy = true,
+        event = 'VeryLazy',
+        dependencies = { 'nvim-tree/nvim-web-devicons' },
+        opts = {},
+    },
+    {
+        'lambdalisue/fern.vim',
+        lazy = true,
+        event = 'VeryLazy',
+        dependencies = {
+            'lambdalisue/nerdfont.vim',
+            'lambdalisue/glyph-palette.vim',
+        },
+    },
+    {
+        'folke/noice.nvim',
+        lazy = true,
+        event = 'VeryLazy',
+        opts = {
+            presets = {
+                bottom_search = true,
+            },
+        },
+        dependencies = {
+            'MunifTanjim/nui.nvim',
+            'rcarriga/nvim-notify',
+        },
+    },
+    {
+        'nvim-telescope/telescope.nvim',
+        lazy = true,
+        event = 'VeryLazy',
+        config = function()
+            local builtin = require('telescope.builtin')
+            vim.keymap.set('n', '<leader>ff', builtin.find_files, {})
+            vim.keymap.set('n', '<leader>fg', builtin.live_grep, {})
+            vim.keymap.set('n', '<leader>fb', builtin.buffers, {})
+            vim.keymap.set('n', '<leader>fh', builtin.help_tags, {})
+            vim.keymap.set('n', '<leader>fs', builtin.lsp_workspace_symbols, {})
+        end,
+    },
     {
         'Shougo/denite.nvim',
         lazy = true,
@@ -162,23 +215,14 @@ require("lazy").setup({
         opts = {
         },
         config = function()
-            vim.cmd('highlight! TreesitterContext guibg=#444444')
-            vim.cmd('highlight! TreesitterContextLineNumber guibg=#444444')
+            vim.api.nvim_set_hl(0, 'TreesitterContext', { bg = '#444444' })
+            vim.api.nvim_set_hl(0, 'TreesitterContextLineNumber', { bg = '#444444' })
         end,
     },
 
     -- Language Server Manager
     {
         'williamboman/mason.nvim',
-        lazy = true,
-        cmd = {
-            'Mason',
-            'MasonDebug',
-            'MasonInstall',
-            'MasonUninstall',
-            'MasonUninstallAll',
-            'MasonLog',
-        },
         opts = {},
         dependencies = {
             {
@@ -187,11 +231,6 @@ require("lazy").setup({
                     require('mason-lspconfig').setup_handlers({ function(server)
                         local opt = {
                             on_attach = function(client, bufnr)
-                                local opts = { noremap = true, silent = true }
-                                vim.keymap.set('n', '<Leader>r', '<cmd>lua vim.lso.buf.rename()<CR>', opts)
-                                vim.keymap.set('n', '<Leader>D', '<cmd>lua vim.lso.buf.declaration()<CR>', opts)
-                                vim.keymap.set('n', '<Leader>d', '<cmd>lua vim.lso.buf.definition()<CR>', opts)
-
                                 vim.cmd('autocmd BufWritePre * lua vim.lsp.buf.formatting_sync(nil, 1000)')
                             end,
                             capabilities = require('cmp_nvim_lsp').default_capabilities(
@@ -206,10 +245,11 @@ require("lazy").setup({
     },
     'neovim/nvim-lspconfig',
 
-    -- LSP nvim-cmp
+    -- LSP tools
     {
         'hrsh7th/nvim-cmp',
-        event = "InsertEnter",
+        lazy = true,
+        event = 'BufRead',
         config = function()
             local cmp = require('cmp')
             cmp.setup({
@@ -258,6 +298,39 @@ require("lazy").setup({
                 end,
             }
         },
+    },
+    {
+        'glepnir/lspsaga.nvim',
+        lazy = true,
+        event = 'BufRead',
+        config = function()
+            local saga = require("lspsaga")
+            saga.setup({
+                code_action_lightbulb = { enable = true, },
+                ui = {
+                    border = 'rounded',
+                },
+            })
+
+            local keyopt = { silent = true, noremap = true }
+            vim.keymap.set('n', '<Leader>x', '<cmd>Lspsaga lsp_finder<CR>', keyopt)
+            vim.keymap.set('n', '<Leader>r', '<cmd>Lspsaga rename<CR>', keyopt)
+            vim.keymap.set({'n', 'v'}, '<Leader>c', '<cmd>Lspsaga code_action<CR>', keyopt)
+            vim.keymap.set('n', '<Leader>d', '<cmd>Lspsaga peek_definition<CR>', keyopt)
+            vim.keymap.set('n', '<Leader>h', '<cmd>Lspsaga hover_doc<CR>', keyopt)
+            vim.keymap.set("n", "<Leader>e", "<cmd>Lspsaga show_line_diagnostics<CR>", keyopt)
+            vim.keymap.set("n", "[e", "<cmd>Lspsaga diagnostic_jump_prev<CR>", keyopt)
+            vim.keymap.set("n", "]e", "<cmd>Lspsaga diagnostic_jump_next<CR>", keyopt)
+
+            vim.api.nvim_set_hl(0, 'SagaBorder', { link = 'NormalFloat' })
+
+        end,
+    },
+
+    -- Tools for development
+    {
+        'TimUntersberger/neogit',
+        opts = {},
     }
 })
 
@@ -274,8 +347,6 @@ vim.opt.softtabstop = 4
 vim.opt.laststatus = 2
 vim.opt.backupdir=vim.fn.stdpath('cache') .. '/backup'
 vim.opt.swapfile = false
-vim.opt.undodir = vim.fn.stdpath('cache') .. '/undo'
-vim.opt.undofile = true
 vim.opt.splitbelow = true
 vim.opt.splitright = true
 vim.opt.ambiwidth = 'single'
@@ -285,7 +356,7 @@ vim.opt.listchars='tab:>-,trail:-'
 vim.opt.foldmethod = 'marker'
 vim.opt.foldcolumn = '2'
 vim.opt.title = true
-vim.opt.cmdheight = 2
+vim.opt.cmdheight = 0
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
 vim.opt.history = 500
@@ -316,3 +387,22 @@ vim.keymap.set('v', 'gk', 'k', { noremap = true })
 
 vim.keymap.set('n', '<ESC><ESC>', ':nohlsearch<CR>', { noremap = true, silent = true })
 vim.keymap.set('n', 'ss', ':sp<CR>:terminal<CR>', { noremap = true, silent = true })
+vim.keymap.set('t', '<ESC>', '<C-\\><C-n>', { noremap = true, silent = true })
+
+vim.api.nvim_create_augroup('ChangeCursorLine', {})
+vim.api.nvim_create_autocmd({'VimEnter', 'WinEnter', 'BufWinEnter'}, {
+    group = 'ChangeCursorLine',
+    pattern = '*',
+    command = 'setlocal cursorline',
+})
+vim.api.nvim_create_autocmd('BufEnter', {
+    group = 'ChangeCursorLine',
+    pattern = '*',
+    command = 'setlocal cursorline',
+})
+vim.api.nvim_create_autocmd('BufLeave', {
+    group = 'ChangeCursorLine',
+    pattern = '*',
+    command = 'setlocal nocursorline',
+})
+
