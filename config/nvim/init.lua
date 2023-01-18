@@ -30,7 +30,6 @@ require("lazy").setup({
         config = function()
             vim.cmd('colorscheme moonfly')
             vim.api.nvim_set_hl(0, 'CmpItemAbbr', { link = 'MoonflyWhite' })
-            vim.api.nvim_set_hl(0, 'NormalNC', { bg = '#282828', fg = '#cccccc' })
         end,
     },
 
@@ -48,26 +47,23 @@ require("lazy").setup({
         },
     },
     {
-        'akinsho/bufferline.nvim',
-        opts = {},
+        'nvim-neo-tree/neo-tree.nvim',
+        config = function()
+            require("neo-tree").setup({
+                source_selector = {
+                    winbar = true,
+                    statusline = false
+                },
+                window = {
+                    width = 30,
+                },
+            })
+            vim.keymap.set('n', '<leader>f', '<cmd>Neotree<CR>')
+        end,
         dependencies = {
+            'nvim-lua/plenary.nvim',
             'nvim-tree/nvim-web-devicons',
-        },
-    },
-    {
-        'nvim-tree/nvim-tree.lua',
-        lazy = true,
-        event = 'VeryLazy',
-        dependencies = { 'nvim-tree/nvim-web-devicons' },
-        opts = {},
-    },
-    {
-        'lambdalisue/fern.vim',
-        lazy = true,
-        event = 'VeryLazy',
-        dependencies = {
-            'lambdalisue/nerdfont.vim',
-            'lambdalisue/glyph-palette.vim',
+            'MunifTanjim/nui.nvim',
         },
     },
     {
@@ -90,11 +86,12 @@ require("lazy").setup({
         event = 'VeryLazy',
         config = function()
             local builtin = require('telescope.builtin')
-            vim.keymap.set('n', '<leader>ff', builtin.find_files, {})
-            vim.keymap.set('n', '<leader>fg', builtin.live_grep, {})
-            vim.keymap.set('n', '<leader>fb', builtin.buffers, {})
-            vim.keymap.set('n', '<leader>fh', builtin.help_tags, {})
-            vim.keymap.set('n', '<leader>fs', builtin.lsp_workspace_symbols, {})
+            vim.keymap.set('n', '<leader>b', builtin.buffers, {})
+
+            vim.keymap.set('n', '<leader>gf', builtin.find_files, {})
+            vim.keymap.set('n', '<leader>gg', builtin.live_grep, {})
+            vim.keymap.set('n', '<leader>gh', builtin.help_tags, {})
+            vim.keymap.set('n', '<leader>gs', builtin.lsp_workspace_symbols, {})
         end,
     },
     {
@@ -139,12 +136,13 @@ require("lazy").setup({
     },
     {
         'Shougo/defx.nvim',
+        lazy = true,
+        cmd = 'Defx',
         dependencies = {
             'kristijanhusak/defx-git',
         },
         config = function()
             vim.cmd([[
-            nnoremap <silent> <Leader>f  :Defx<CR>
 
             call defx#custom#option('_', {
             \ 'root_marker': ':',
