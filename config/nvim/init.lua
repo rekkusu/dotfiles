@@ -1,4 +1,3 @@
-
 vim.g.mapleader = ' '
 vim.g.python3_host_prog = '/usr/bin/python3'
 vim.g.loaded_netrw = 1
@@ -6,22 +5,34 @@ vim.g.loaded_netrwPlugin = 1
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
-  vim.fn.system({
-    "git",
-    "clone",
-    "--filter=blob:none",
-    "https://github.com/folke/lazy.nvim.git",
-    "--branch=stable",
-    lazypath,
-  })
+    vim.fn.system({
+        "git",
+        "clone",
+        "--filter=blob:none",
+        "https://github.com/folke/lazy.nvim.git",
+        "--branch=stable",
+        lazypath,
+    })
 end
 vim.opt.rtp:prepend(lazypath)
-
 
 require("lazy").setup({
     -- library
     'nvim-lua/plenary.nvim',
     'nvim-lua/popup.nvim',
+    'MunifTanjim/nui.nvim',
+    {
+        's1n7ax/nvim-window-picker',
+        opts = {
+            autoselect_one = true,
+            filter_rules = {
+                bo = {
+                    filetype = { 'neo-tree' },
+                    buftype = { 'terminal', 'quickfix' },
+                },
+            },
+        },
+    },
 
     -- colorscheme
     {
@@ -48,6 +59,7 @@ require("lazy").setup({
     },
     {
         'nvim-neo-tree/neo-tree.nvim',
+        branch = 'v2.x',
         config = function()
             require("neo-tree").setup({
                 source_selector = {
@@ -56,6 +68,10 @@ require("lazy").setup({
                 },
                 window = {
                     width = 30,
+                    mappings = {
+                        ["S"] = "split_with_window_picker",
+                        ["s"] = "vsplit_with_window_picker",
+                    },
                 },
             })
             vim.keymap.set('n', '<leader>f', '<cmd>Neotree<CR>')
@@ -71,6 +87,9 @@ require("lazy").setup({
         lazy = true,
         event = 'VeryLazy',
         opts = {
+            messages = {
+                enabled = false,
+            },
             presets = {
                 bottom_search = true,
             },
@@ -95,106 +114,6 @@ require("lazy").setup({
         end,
     },
     {
-        'Shougo/denite.nvim',
-        lazy = true,
-        event = 'VeryLazy',
-        config = function()
-            vim.cmd([[
-            nnoremap <silent> <Leader>b :Denite buffer<CR>
-            nnoremap <silent> <Leader>a :Denite -auto-resize buffer file/rec<CR>
-
-            augroup denite_filter
-            function! s:denite_settings() abort
-            nnoremap <silent><buffer><expr> <CR> denite#do_map('do_action', 'switch')
-            nnoremap <silent><buffer><expr> p denite#do_map('do_action', 'preview')
-            nnoremap <silent><buffer><expr> dd denite#do_map('do_action', 'delete')
-            nnoremap <silent><buffer><expr> q denite#do_map('quit')
-            nnoremap <silent><buffer><expr> i denite#do_map('open_filter_buffer')
-            nnoremap <silent><buffer><expr> I denite#do_map('do_action', 'splitswitch')
-            nnoremap <silent><buffer><expr> s denite#do_map('do_action', 'vsplitswitch')
-            endfunction
-
-            function! s:denite_filter_settings() abort
-            call deoplete#custom#buffer_option('auto_complete', v:false)
-            endfunction
-
-            autocmd FileType denite call s:denite_settings()
-            autocmd FileType denite-filter call s:denite_filter_settings()
-            augroup END
-
-
-            call denite#custom#option('_', {
-            \ 'split': 'floating',
-            \ 'prompt': '>',
-            \ 'start-filter': v:true
-            \ })
-
-            call denite#custom#var('menu', 'menus', {
-            \})
-            ]])
-        end,
-    },
-    {
-        'Shougo/defx.nvim',
-        lazy = true,
-        cmd = 'Defx',
-        dependencies = {
-            'kristijanhusak/defx-git',
-        },
-        config = function()
-            vim.cmd([[
-
-            call defx#custom#option('_', {
-            \ 'root_marker': ':',
-            \ 'columns': 'mark:indent:icon:filename:git',
-            \ 'show_ignored_files': 1,
-            \ 'split': 'floating',
-            \ 'resume': v:true,
-            \ 'wincol': 0,
-            \ 'winrow': 0,
-            \ 'winwidth': 60,
-            \ 'direction': 'topleft'
-            \ })
-
-            call defx#custom#column('filename', {
-            \ 'min_width': 30,
-            \ 'max_width': 30,
-            \ 'root_marker_highlight': 'Ignore',
-            \ })
-
-            function! s:open_defx_if_noargs()
-            if argc() == 0
-            Defx
-            endif
-            endfunction
-
-            function! s:defx_settings() abort
-            nnoremap <silent><buffer><expr> <CR> defx#is_directory() ? defx#do_action('open_or_close_tree') : defx#do_action('multi', ['drop', 'quit'])
-            nnoremap <silent><buffer><expr> u defx#do_action('cd', ['..'])
-            nnoremap <silent><buffer><expr> n defx#do_action('new_file')
-            nnoremap <silent><buffer><expr> dd defx#do_action('remove')
-            nnoremap <silent><buffer><expr> yy defx#do_action('copy')
-            nnoremap <silent><buffer><expr> p defx#do_action('paste')
-            nnoremap <silent><buffer><expr> r defx#do_action('rename')
-            nnoremap <silent><buffer><expr> R defx#do_action('redraw')
-            nnoremap <silent><buffer><expr> m defx#do_action('move')
-            nnoremap <silent><buffer><expr> cd defx#do_action('change_vim_cwd')
-            nnoremap <silent><buffer><expr> i defx#do_action('multi', [['open', 'split'], 'quit'])
-            nnoremap <silent><buffer><expr> s defx#do_action('multi', [['open', 'vsplit'], 'quit'])
-            nnoremap <silent><buffer><expr> I defx#do_action('toggle_ignored_files')
-            nnoremap <silent><buffer><expr> n defx#do_action('new_file')
-            nnoremap <silent><buffer><expr> q defx#do_action('quit')
-            endfunction
-
-            augroup Defx
-            autocmd!
-            autocmd VimEnter * call s:open_defx_if_noargs()
-            autocmd FileType defx call s:defx_settings()
-            augroup END
-            ]])
-        end,
-    },
-    {
         'nvim-treesitter/nvim-treesitter',
         lazy = true,
         event = 'VeryLazy',
@@ -202,7 +121,12 @@ require("lazy").setup({
             require('nvim-treesitter.configs').setup {
                 ensure_installed = 'all',
                 highlight = { enable = true },
-                indent = { enable = true },
+                indent = {
+                    enable = 'all',
+                    disable = {
+                        'python'
+                    },
+                },
             }
         end,
     },
@@ -216,6 +140,11 @@ require("lazy").setup({
             vim.api.nvim_set_hl(0, 'TreesitterContext', { bg = '#444444' })
             vim.api.nvim_set_hl(0, 'TreesitterContextLineNumber', { bg = '#444444' })
         end,
+    },
+    {
+        'folke/trouble.nvim',
+        opts = {
+        },
     },
 
     -- Language Server Manager
@@ -235,6 +164,15 @@ require("lazy").setup({
                                 vim.lsp.protocol.make_client_capabilities()
                             )
                         }
+                        if server == 'lua-language-server' then
+                            opt.settings = {
+                                Lua = {
+                                    diagnostics = {
+                                        globals = { 'vim' }
+                                    },
+                                }
+                            }
+                        end
                         require('lspconfig')[server].setup(opt)
                     end })
                 end,
@@ -265,7 +203,12 @@ require("lazy").setup({
                 },
                 sources = cmp.config.sources({
                     { name = 'nvim_lsp' },
-                    { name = 'buffer' },
+                    {
+                        name = 'buffer',
+                        option = {
+                            keyword_length = 3,
+                        },
+                    },
                     { name = 'path' },
                 }, {}),
                 window = {
@@ -290,7 +233,7 @@ require("lazy").setup({
                     local null_ls = require('null-ls')
                     null_ls.setup({
                         sources = {
-                            null_ls.builtins.diagnostics.textlint.with({ filetypes = { 'markdown' }}),
+                            null_ls.builtins.diagnostics.textlint.with({ filetypes = { 'markdown' } }),
                         },
                     })
                 end,
@@ -313,7 +256,7 @@ require("lazy").setup({
             local keyopt = { silent = true, noremap = true }
             vim.keymap.set('n', '<Leader>x', '<cmd>Lspsaga lsp_finder<CR>', keyopt)
             vim.keymap.set('n', '<Leader>r', '<cmd>Lspsaga rename<CR>', keyopt)
-            vim.keymap.set({'n', 'v'}, '<Leader>c', '<cmd>Lspsaga code_action<CR>', keyopt)
+            vim.keymap.set({ 'n', 'v' }, '<Leader>c', '<cmd>Lspsaga code_action<CR>', keyopt)
             vim.keymap.set('n', '<Leader>d', '<cmd>Lspsaga peek_definition<CR>', keyopt)
             vim.keymap.set('n', '<Leader>h', '<cmd>Lspsaga hover_doc<CR>', keyopt)
             vim.keymap.set("n", "<Leader>e", "<cmd>Lspsaga show_line_diagnostics<CR>", keyopt)
@@ -321,7 +264,6 @@ require("lazy").setup({
             vim.keymap.set("n", "]e", "<cmd>Lspsaga diagnostic_jump_next<CR>", keyopt)
 
             vim.api.nvim_set_hl(0, 'SagaBorder', { link = 'NormalFloat' })
-
         end,
     },
 
@@ -329,7 +271,13 @@ require("lazy").setup({
     {
         'TimUntersberger/neogit',
         opts = {},
-    }
+    },
+    {
+        'lewis6991/gitsigns.nvim',
+        opts = {
+            numhl = true,
+        },
+    },
 })
 
 
@@ -343,14 +291,16 @@ vim.opt.expandtab = true
 vim.opt.tabstop = 4
 vim.opt.softtabstop = 4
 vim.opt.laststatus = 2
-vim.opt.backupdir=vim.fn.stdpath('cache') .. '/backup'
+vim.opt.backupdir = vim.fn.stdpath('cache') .. '/backup'
+vim.opt.undofile = true
+vim.opt.undodir = vim.fn.stdpath('cache') .. '/undo'
 vim.opt.swapfile = false
 vim.opt.splitbelow = true
 vim.opt.splitright = true
 vim.opt.ambiwidth = 'single'
 vim.opt.hidden = true
 vim.opt.list = true
-vim.opt.listchars='tab:>-,trail:-'
+vim.opt.listchars = 'tab:>-,trail:-'
 vim.opt.foldmethod = 'marker'
 vim.opt.foldcolumn = '2'
 vim.opt.title = true
@@ -361,8 +311,8 @@ vim.opt.history = 500
 vim.opt.visualbell = true
 vim.opt.mouse = 'a'
 vim.opt.showmatch = true
-vim.opt.matchtime=1
-vim.opt.scrollback=1000
+vim.opt.matchtime = 1
+vim.opt.scrollback = 1000
 vim.opt.termguicolors = true
 vim.opt.pumblend = 20
 vim.optwinblend = 20
@@ -385,10 +335,12 @@ vim.keymap.set('v', 'gk', 'k', { noremap = true })
 
 vim.keymap.set('n', '<ESC><ESC>', ':nohlsearch<CR>', { noremap = true, silent = true })
 vim.keymap.set('n', 'ss', ':sp<CR>:terminal<CR>', { noremap = true, silent = true })
-vim.keymap.set('t', '<ESC>', '<C-\\><C-n>', { noremap = true, silent = true })
+
+vim.keymap.set('t', '<ESC>', '<C-\\><C-n><Plug>(send-esc-inner-term)', { noremap = true })
+vim.keymap.set('n', '<Plug>(send-esc-inner-term)<ESC>', 'i<ESC>', { noremap = true })
 
 vim.api.nvim_create_augroup('ChangeCursorLine', {})
-vim.api.nvim_create_autocmd({'VimEnter', 'WinEnter', 'BufWinEnter'}, {
+vim.api.nvim_create_autocmd({ 'VimEnter', 'WinEnter', 'BufWinEnter' }, {
     group = 'ChangeCursorLine',
     pattern = '*',
     command = 'setlocal cursorline',
@@ -403,4 +355,3 @@ vim.api.nvim_create_autocmd('BufLeave', {
     pattern = '*',
     command = 'setlocal nocursorline',
 })
-
