@@ -28,4 +28,7 @@ if [[ `uname -r` =~ .*WSL.* ]]; then
 
   mkdir -p "$WINHOME/AppData/Roaming/alacritty"
   cp wsl/alacritty/alacritty.yml "$WINHOME/AppData/Roaming/alacritty/alacritty.yml"
+
+  mkdir -p "$WINHOME/.config/wezterm"
+  cp wsl/wezterm/wezterm.lua "$WINHOME/.config/wezterm/wezterm.lua"
 fi
