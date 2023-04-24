@@ -123,9 +123,6 @@ require("lazy").setup({
                 highlight = { enable = true },
                 indent = {
                     enable = 'all',
-                    disable = {
-                        'python'
-                    },
                 },
             }
         end,
@@ -258,7 +255,9 @@ require("lazy").setup({
             vim.keymap.set('n', '<Leader>r', '<cmd>Lspsaga rename<CR>', keyopt)
             vim.keymap.set({ 'n', 'v' }, '<Leader>c', '<cmd>Lspsaga code_action<CR>', keyopt)
             vim.keymap.set('n', '<Leader>d', '<cmd>Lspsaga peek_definition<CR>', keyopt)
+            vim.keymap.set('n', '<Leader>D', '<cmd>Lspsaga goto_definition<CR>', keyopt)
             vim.keymap.set('n', '<Leader>h', '<cmd>Lspsaga hover_doc<CR>', keyopt)
+            vim.keymap.set('n', '<Leader>o', '<cmd>Lspsaga outline<CR>', keyopt)
             vim.keymap.set("n", "<Leader>e", "<cmd>Lspsaga show_line_diagnostics<CR>", keyopt)
             vim.keymap.set("n", "[e", "<cmd>Lspsaga diagnostic_jump_prev<CR>", keyopt)
             vim.keymap.set("n", "]e", "<cmd>Lspsaga diagnostic_jump_next<CR>", keyopt)
