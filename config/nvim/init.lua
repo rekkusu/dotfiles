@@ -149,13 +149,20 @@ require("lazy").setup({
         'williamboman/mason.nvim',
         opts = {},
         dependencies = {
+            'hrsh7th/cmp-nvim-lsp',
+            'neovim/nvim-lspconfig',
             {
                 'williamboman/mason-lspconfig.nvim',
                 config = function()
                     require('mason-lspconfig').setup_handlers({ function(server)
                         local opt = {
                             on_attach = function(client, bufnr)
-                                vim.cmd('autocmd BufWritePre * lua vim.lsp.buf.formatting_sync(nil, 1000)')
+                                if client.server_capabilities.documentFormattingProvider then
+                                    vim.api.nvim_create_autocmd({ 'BufWritePre' }, {
+                                        buffer = bufnr,
+                                        callback = function() vim.lsp.buf.format() end,
+                                    })
+                                end
                             end,
                             capabilities = require('cmp_nvim_lsp').default_capabilities(
                                 vim.lsp.protocol.make_client_capabilities()
@@ -176,7 +183,6 @@ require("lazy").setup({
             },
         }
     },
-    'neovim/nvim-lspconfig',
 
     -- LSP tools
     {
