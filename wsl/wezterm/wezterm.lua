@@ -10,7 +10,8 @@ return {
     font_size = 13,
     default_prog = { "wsl.exe", "~" },
     hide_tab_bar_if_only_one_tab = true,
-    scrollback_lines = 10000,
+    scrollback_lines = 100000,
+    enable_kitty_graphics = true,
     colors = {
         foreground = '#ffffff',
         ansi = {

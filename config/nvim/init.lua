@@ -3,6 +3,10 @@ vim.g.python3_host_prog = '/usr/bin/python3'
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 
+-- Luarocks path
+package.path = package.path .. ";" .. vim.fn.expand("$HOME") .. "/.luarocks/share/lua/5.1/?/init.lua;"
+package.path = package.path .. ";" .. vim.fn.expand("$HOME") .. "/.luarocks/share/lua/5.1/?.lua;"
+
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
     vim.fn.system({
@@ -59,7 +63,7 @@ require("lazy").setup({
     },
     {
         'nvim-neo-tree/neo-tree.nvim',
-        branch = 'v2.x',
+        branch = 'v3.x',
         config = function()
             require("neo-tree").setup({
                 source_selector = {
@@ -71,6 +75,10 @@ require("lazy").setup({
                     mappings = {
                         ["S"] = "split_with_window_picker",
                         ["s"] = "vsplit_with_window_picker",
+                        ["P"] = {
+                            "toggle_preview", 
+                            config = { use_float = true, use_image_nvim = true },
+                        },
                     },
                 },
             })
@@ -80,6 +88,7 @@ require("lazy").setup({
             'nvim-lua/plenary.nvim',
             'nvim-tree/nvim-web-devicons',
             'MunifTanjim/nui.nvim',
+            '3rd/image.nvim',
         },
     },
     {
@@ -230,18 +239,18 @@ require("lazy").setup({
             'hrsh7th/cmp-path',
             'hrsh7th/cmp-vsnip',
             'hrsh7th/vim-vsnip',
-            {
-                'jose-elias-alvarez/null-ls.nvim',
-                config = function()
-                    local null_ls = require('null-ls')
-                    null_ls.setup({
-                        sources = {
-                            null_ls.builtins.diagnostics.textlint.with({ filetypes = { 'markdown' } }),
-                        },
-                    })
-                end,
-            }
         },
+    },
+    {
+        'nvimtools/none-ls.nvim',
+        config = function()
+            local null_ls = require('null-ls')
+            null_ls.setup({
+                sources = {
+                    null_ls.builtins.diagnostics.textlint.with({ filetypes = { 'markdown' } }),
+                },
+            })
+        end,
     },
     {
         'glepnir/lspsaga.nvim',
@@ -288,6 +297,7 @@ require("lazy").setup({
 
 vim.opt.cursorline = true
 vim.opt.number = true
+vim.opt.relativenumber = true
 vim.opt.showmatch = true
 vim.opt.smartindent = true
 vim.opt.autoindent = true

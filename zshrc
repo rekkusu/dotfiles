@@ -160,7 +160,21 @@ if _installed pyenv; then
   eval "$(pyenv virtualenv-init -)"
 fi
 
+### poetry
+add_path_if_exists $HOME/.local/bin
+
 if [ -e /home/rex/.nix-profile/etc/profile.d/nix.sh ]; then . /home/rex/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
 
 
 add_path_if_exists $HOME/.local/share/solana/install/active_release/bin
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# bun completions
+[ -s "/home/rex/.bun/_bun" ] && source "/home/rex/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
