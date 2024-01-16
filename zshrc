@@ -29,7 +29,7 @@ function _installed {
 zstyle ':vcs_info:git:*' check-for-changes true
 zstyle ':vcs_info:git:*' stagedstr "%{$fg[yellow]%}!%{$reset_color%}"
 zstyle ':vcs_info:git:*' unstagedstr "%{$fg[yellow]%}+%{$reset_color%}"
-zstyle ':vcs_info:*' formats "%{$fg[white]%}(%b)%{$reset_color%}"
+zstyle ':vcs_info:*' formats "%{$fg[white]%}(%b)%{$reset_color%} "
 zstyle ':vcs_info:*' actionformats '[%b|%a]'
 
 function pre_vcs_info() {
@@ -37,13 +37,27 @@ function pre_vcs_info() {
 }
 add-zsh-hook precmd pre_vcs_info
 
+function prompt_host() {
+    if [[ -f /etc/os-release ]]; then
+        local id=$(grep "^ID=" /etc/os-release | cut -d '=' -f 2 | tr -d '"')
+        case $id in
+            ubuntu ) prompt_host_msg=$'\uf31b $HOST';;
+            arch ) prompt_host_msg=$'\uf303 $HOST';;
+            * ) prompt_host_msg=$'\uf31a $HOST';;
+        esac
+    else
+        prompt_host_msg=$'\uf31a $HOST'
+    fi
+}
+prompt_host
+
 vcs_info_msg_0_="A"
 PROMPT=""
 PROMPT+="%{$fg[red]%}[%*]%{$reset_color%}"  # timestamp
-PROMPT+=" %{$fg[cyan]%}$HOST%{$reset_color%}"  # host
+PROMPT+=" %{$fg[cyan]%}$prompt_host_msg%{$reset_color%}"  # host
 PROMPT+=" %?"  # status
 PROMPT+=' ${vcs_info_msg_0_}'  # Zsh VCS
-PROMPT+=" %{$fg[green]%}%~%{$reset_color%}"  # current directory
+PROMPT+="%{$fg[green]%}%~%{$reset_color%}"  # current directory
 PROMPT+="
 %% "  # shell
 
@@ -73,9 +87,9 @@ bindkey -e
 
 HISTSIZE=10000
 SAVEHIST=10000
-HISTFILE=~/.zsh_history
+HISTFILE="$XDG_STATE_HOME"/.zsh_history
 
-autoload -Uz compinit && compinit
+autoload -Uz compinit && compinit -d "$XDG_CACHE_HOME"/zsh/zcompdump
 
 zstyle ':completion:*' completer _complete _prefix
 zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z} r:|[-_.]=**'
@@ -110,8 +124,6 @@ fi
 
 # nodebrew
 add_path_if_exists $HOME/.nodebrew/current/bin
-if _installed nodebrew; then
-fi
 
 # wsl2-ssh-pageant
 function start-agent() {
@@ -126,12 +138,11 @@ function start-agent() {
   if [ $? -ne 0 ]; then
     rm -rf $GPG_AGENT_SOCK
     (setsid nohup socat UNIX-LISTEN:$GPG_AGENT_SOCK,fork EXEC:"$HOME/.ssh/wsl2-ssh-pageant.exe -logfile /dev/null -gpg S.gpg-agent -gpgConfigBasepath '$WIN_GPGSOCK_BASE'" >/dev/null 2>&1 &)
-    #(setsid nohup socat UNIX-LISTEN:$GPG_AGENT_SOCK,fork EXEC:"$HOME/bin/npiperelay.exe -ei -ep -s -a \"C:/Users/rex/AppData/Local/gnupg/S.gpg-agent\"",nofork  > /dev/null 2>&1 &)
   fi
 }
 
 if [[ `uname -r` =~ .*WSL.* ]]; then
-  export WINUSER=`whoami.exe | nkf -Lu | sed -r 's/^\S+\\\\//g'`
+  export WINUSER=`whoami.exe | sed -r 's/^[^\]+\\\\(.+)\r$/\1/g'`
   export WINHOME=/mnt/c/Users/$WINUSER
   export SSH_AUTH_SOCK=$HOME/.ssh/agent.sock
   export GPG_AGENT_SOCK=$HOME/.gnupg/S.gpg-agent
