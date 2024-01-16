@@ -1,14 +1,19 @@
 #!/bin/bash
-cd `dirname $0`
+cd `dirname "$0"`
 
-if [[ ! -e $HOME/.zshrc ]]; then
-  ln -sr ./zshrc $HOME/.zshrc
-  echo "[+] Created symlink of .zshrc"
+if [[ ! -e $HOME/.zshenv ]]; then
+  ln -sr ./zshenv $HOME/.zshenv
+  echo "[+] Created symlink of .zshenv"
 fi
 
 if [[ ! -d $HOME/.config/nvim ]]; then
   ln -sr ./config/nvim $HOME/.config/nvim
   echo "[+] Created symlink of .config/nvim"
+fi
+
+if [[ ! -d $HOME/.config/zsh ]]; then
+  ln -sr ./config/zsh $HOME/.config/zsh
+  echo "[+] Created symlink of .config/zsh"
 fi
 
 if [[ ! -e $HOME/.tmux.conf ]]; then
