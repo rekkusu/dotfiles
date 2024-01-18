@@ -25,6 +25,9 @@ github = "z-shell/F-Sy-H"
 github = "zsh-users/zsh-autosuggestions"
 use = ["{{ name }}.zsh"]
 
+[plugins.zsh-completions]
+github = "zsh-users/zsh-completions"
+
 [plugins.myconf]
 local = "~/.config/zshconf"
 use = ["main.zsh"]
