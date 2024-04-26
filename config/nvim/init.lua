@@ -159,7 +159,13 @@ require("lazy").setup({
         opts = {},
         dependencies = {
             'hrsh7th/cmp-nvim-lsp',
-            'neovim/nvim-lspconfig',
+            {
+                'neovim/nvim-lspconfig',
+                config = function()
+                    local lspconfig = require('lspconfig')
+                    lspconfig.metals.setup{}
+                end,
+            },
             {
                 'williamboman/mason-lspconfig.nvim',
                 config = function()
@@ -200,21 +206,40 @@ require("lazy").setup({
         event = 'BufRead',
         config = function()
             local cmp = require('cmp')
+            local lspkind = require('lspkind')
             cmp.setup({
+                preselect = cmp.PreselectMode.None,
+                formatting = {
+                    format = lspkind.cmp_format({
+                        mode = 'symbol_text',
+                        maxwidth = 100,
+                        ellipsis_char = '...',
+                        symbol_map = {
+                            Copilot = '',
+                        },
+                    }),
+                },
                 snippet = {
                     expand = function(args)
                         vim.fn["vsnip#anonymous"](args.body)
                     end,
                 },
                 mapping = {
-                    ['<C-n>'] = cmp.mapping(cmp.mapping.select_next_item()),
-                    ['<C-p>'] = cmp.mapping(cmp.mapping.select_prev_item()),
-                    ['<Tab>'] = cmp.mapping(cmp.mapping.select_next_item()),
-                    ['<S-Tab>'] = cmp.mapping(cmp.mapping.select_prev_item()),
-                    ['<CR>'] = cmp.mapping.confirm({ select = true }),
+                    ['<C-n>'] = cmp.mapping.select_next_item(),
+                    ['<C-p>'] = cmp.mapping.select_prev_item(),
+                    ['<Tab>'] = cmp.mapping.select_next_item(),
+                    ['<S-Tab>'] = cmp.mapping.select_prev_item(),
+                    ['<CR>'] = cmp.mapping.confirm({ select = false }),
                 },
                 sources = cmp.config.sources({
-                    { name = 'nvim_lsp' },
+                    {
+                        name = 'nvim_lsp',
+                        priority = 1,
+                    },
+                    {
+                        name = "copilot",
+                        priority = 1,
+                    },
                     {
                         name = 'buffer',
                         option = {
@@ -222,6 +247,7 @@ require("lazy").setup({
                         },
                     },
                     { name = 'path' },
+                    { name = 'vsnip' },
                 }, {}),
                 window = {
                     completion = {
@@ -238,7 +264,27 @@ require("lazy").setup({
             'hrsh7th/cmp-buffer',
             'hrsh7th/cmp-path',
             'hrsh7th/cmp-vsnip',
-            'hrsh7th/vim-vsnip',
+            {
+                'hrsh7th/vim-vsnip',
+                config = function()
+                    local keyopt = { expr = true }
+                    vim.keymap.set('i', '<Tab>', function()
+                        if vim.fn['vsnip#jumpable'](1)  then
+                            return '<Plug>(vsnip-jump-next)'
+                        else
+                            return '<Tab>'
+                        end
+                    end, keyopt)
+                    vim.keymap.set('i', '<S-Tab>', function()
+                        if vim.fn['vsnip#jumpable'](-1) then
+                            return '<Plug>(vsnip-jump-prev)'
+                        else
+                            return '<S-Tab>'
+                        end
+                    end, keyopt)
+                end,
+            },
+            'onsails/lspkind.nvim',
         },
     },
     {
@@ -259,14 +305,14 @@ require("lazy").setup({
         config = function()
             local saga = require("lspsaga")
             saga.setup({
-                code_action_lightbulb = { enable = true, },
+                code_action_lightbulb = { enable = false, },
                 ui = {
                     border = 'rounded',
                 },
             })
 
             local keyopt = { silent = true, noremap = true }
-            vim.keymap.set('n', '<Leader>x', '<cmd>Lspsaga lsp_finder<CR>', keyopt)
+            vim.keymap.set('n', '<Leader>x', '<cmd>Lspsaga finder<CR>', keyopt)
             vim.keymap.set('n', '<Leader>r', '<cmd>Lspsaga rename<CR>', keyopt)
             vim.keymap.set({ 'n', 'v' }, '<Leader>c', '<cmd>Lspsaga code_action<CR>', keyopt)
             vim.keymap.set('n', '<Leader>d', '<cmd>Lspsaga peek_definition<CR>', keyopt)
@@ -292,6 +338,40 @@ require("lazy").setup({
             numhl = true,
         },
     },
+    {
+        'zbirenbaum/copilot.lua',
+        event = 'InsertEnter',
+        opts = {
+            suggestion = {
+                enabled = true,
+                keymap = {
+                    accept = "<C-Tab>",
+                    next = "<C-Up>",
+                    prev = "<C-Down>",
+                }
+            },
+        },
+    },
+    {
+        'zbirenbaum/copilot-cmp',
+        event = 'InsertEnter',
+        config = function ()
+            require("copilot_cmp").setup()
+        end,
+    },
+    {
+        'mfussenegger/nvim-dap',
+        event = 'BufRead',
+        config = function()
+            local keyopt = { silent = true, noremap = true }
+            vim.keymap.set('n', '<F5>', function() require('dap').continue() end, keyopt)
+            vim.keymap.set('n', '<F10>', function() require('dap').step_over() end, keyopt)
+            vim.keymap.set('n', '<F11>', function() require('dap').step_into() end, keyopt)
+            vim.keymap.set('n', '<F12>', function() require('dap').step_out() end, keyopt)
+            vim.keymap.set('n', '<Leader>b', function() require('dap').toggle_breakpoint() end, keyopt)
+            vim.keymap.set('n', '<Leader>dr', function() require('dap').repl.open() end)
+        end,
+    }
 })
 
 
@@ -330,7 +410,7 @@ vim.opt.matchtime = 1
 vim.opt.scrollback = 1000
 vim.opt.termguicolors = true
 vim.opt.pumblend = 20
-vim.optwinblend = 20
+vim.opt.winblend = 20
 
 vim.opt.formatoptions:append('mM')
 
@@ -370,3 +450,5 @@ vim.api.nvim_create_autocmd('BufLeave', {
     pattern = '*',
     command = 'setlocal nocursorline',
 })
+
+
