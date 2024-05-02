@@ -169,21 +169,25 @@ require("lazy").setup({
             {
                 'williamboman/mason-lspconfig.nvim',
                 config = function()
-                    require('mason-lspconfig').setup_handlers({ function(server)
-                        local opt = {
-                            on_attach = function(client, bufnr)
-                                if client.server_capabilities.documentFormattingProvider then
-                                    vim.api.nvim_create_autocmd({ 'BufWritePre' }, {
-                                        buffer = bufnr,
-                                        callback = function() vim.lsp.buf.format() end,
-                                    })
-                                end
-                            end,
-                            capabilities = require('cmp_nvim_lsp').default_capabilities(
-                                vim.lsp.protocol.make_client_capabilities()
-                            )
-                        }
-                        if server == 'lua-language-server' then
+                    local opt = {
+                        on_attach = function(client, bufnr)
+                            if client.server_capabilities.documentFormattingProvider then
+                                vim.api.nvim_create_autocmd({ 'BufWritePre' }, {
+                                    buffer = bufnr,
+                                    callback = function() vim.lsp.buf.format() end,
+                                })
+                            end
+                        end,
+                        capabilities = require('cmp_nvim_lsp').default_capabilities(
+                            vim.lsp.protocol.make_client_capabilities()
+                        )
+                    }
+
+                    require('mason-lspconfig').setup_handlers({
+                        function(server)
+                            require('lspconfig')[server].setup(opt)
+                        end,
+                        ['lua_ls'] = function()
                             opt.settings = {
                                 Lua = {
                                     diagnostics = {
@@ -191,9 +195,13 @@ require("lazy").setup({
                                     },
                                 }
                             }
-                        end
-                        require('lspconfig')[server].setup(opt)
-                    end })
+                            require('lspconfig')['lua_ls'].setup(opt)
+                        end,
+                        ['clangd'] = function()
+                            opt.capabilities.offsetEncoding = "utf-8"
+                            require('lspconfig')['clangd'].setup(opt)
+                        end,
+                    })
                 end,
             },
         }
