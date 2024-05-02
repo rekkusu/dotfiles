@@ -57,6 +57,10 @@ PROMPT+="%{$fg[green]%}%~%{$reset_color%}"  # current directory
 PROMPT+="
 %% "  # shell
 
+HISTSIZE=10000
+SAVEHIST=10000
+HISTFILE="$XDG_STATE_HOME"/.zsh_history
+setopt histignorealldups
 
 source `dirname $0`/local.zsh
 

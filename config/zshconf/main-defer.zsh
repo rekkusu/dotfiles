@@ -22,10 +22,6 @@ re-prompt() {
 
 zle -N accept-line re-prompt
 
-HISTSIZE=10000
-SAVEHIST=10000
-HISTFILE="$XDG_STATE_HOME"/.zsh_history
-setopt histignorealldups
 
 autoload -Uz compinit && compinit -d "$XDG_CACHE_HOME"/zsh/zcompdump
 
