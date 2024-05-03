@@ -169,37 +169,40 @@ require("lazy").setup({
             {
                 'williamboman/mason-lspconfig.nvim',
                 config = function()
-                    local opt = {
-                        on_attach = function(client, bufnr)
-                            if client.server_capabilities.documentFormattingProvider then
-                                vim.api.nvim_create_autocmd({ 'BufWritePre' }, {
-                                    buffer = bufnr,
-                                    callback = function() vim.lsp.buf.format() end,
-                                })
-                            end
-                        end,
-                        capabilities = require('cmp_nvim_lsp').default_capabilities(
-                            vim.lsp.protocol.make_client_capabilities()
-                        )
-                    }
+                    local on_attach = function(client, bufnr)
+                        if client.server_capabilities.documentFormattingProvider then
+                            vim.api.nvim_create_autocmd({ 'BufWritePre' }, {
+                                buffer = bufnr,
+                                callback = function() vim.lsp.buf.format() end,
+                            })
+                        end
+                    end,
 
                     require('mason-lspconfig').setup_handlers({
                         function(server)
-                            require('lspconfig')[server].setup(opt)
+                            require('lspconfig')[server].setup({
+                                on_attach = on_attach,
+                            })
                         end,
                         ['lua_ls'] = function()
-                            opt.settings = {
-                                Lua = {
-                                    diagnostics = {
-                                        globals = { 'vim' }
-                                    },
+                            require('lspconfig')['lua_ls'].setup({
+                                on_attach = on_attach,
+                                settings = {
+                                    Lua = {
+                                        diagnostics = {
+                                            globals = { 'vim' }
+                                        },
+                                    }
                                 }
-                            }
-                            require('lspconfig')['lua_ls'].setup(opt)
+                            })
                         end,
                         ['clangd'] = function()
-                            opt.capabilities.offsetEncoding = "utf-8"
-                            require('lspconfig')['clangd'].setup(opt)
+                            require('lspconfig')['clangd'].setup({
+                                on_attach = on_attach,
+                                capabilities = {
+                                    offsetEncoding = "utf-8",
+                                },
+                            })
                         end,
                     })
                 end,
