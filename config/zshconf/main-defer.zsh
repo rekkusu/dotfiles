@@ -53,8 +53,4 @@ ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#888888,underline"
 # aliases
 alias ls='ls --color'
 
-echo load-start >> ~/log3.txt
-echo `dirname $0`/local-defer.zsh >> ~/log3.txt
 source `dirname $0`/local-defer.zsh
-echo $a >> ~/log3.txt
-echo load-end >> ~/log3.txt

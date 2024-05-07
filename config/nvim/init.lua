@@ -235,13 +235,19 @@ require("lazy").setup({
                         vim.fn["vsnip#anonymous"](args.body)
                     end,
                 },
-                mapping = {
+                mapping = cmp.mapping.preset.insert({
                     ['<C-n>'] = cmp.mapping.select_next_item(),
                     ['<C-p>'] = cmp.mapping.select_prev_item(),
-                    ['<Tab>'] = cmp.mapping.select_next_item(),
+                    ['<Tab>'] = function(fallback)
+                        if cmp.visible() then
+                            cmp.select_next_item()
+                        else
+                            fallback()
+                        end
+                    end,
                     ['<S-Tab>'] = cmp.mapping.select_prev_item(),
                     ['<CR>'] = cmp.mapping.confirm({ select = false }),
-                },
+                }),
                 sources = cmp.config.sources({
                     {
                         name = 'nvim_lsp',
@@ -279,20 +285,25 @@ require("lazy").setup({
                 'hrsh7th/vim-vsnip',
                 config = function()
                     local keyopt = { expr = true }
-                    vim.keymap.set('i', '<Tab>', function()
-                        if vim.fn['vsnip#jumpable'](1)  then
-                            return '<Plug>(vsnip-jump-next)'
-                        else
-                            return '<Tab>'
-                        end
-                    end, keyopt)
-                    vim.keymap.set('i', '<S-Tab>', function()
-                        if vim.fn['vsnip#jumpable'](-1) then
-                            return '<Plug>(vsnip-jump-prev)'
-                        else
-                            return '<S-Tab>'
-                        end
-                    end, keyopt)
+                    
+                    --vim.keymap.set('i', '<Tab>', function()
+                    --    if vim.fn['vsnip#jumpable'](1)  then
+                    --        print('vsnip')
+                    --        return '<Plug>(vsnip-jump-next)'
+                    --    else
+                    --        print('tab')
+                    --        local key = vim.api.nvim_replace_termcodes("<Tab>", true, false, true)
+                    --        vim.api.nvim_feedkeys(key, 'im', false)
+                    --        return '<Tab>'
+                    --    end
+                    --end, keyopt)
+                    --vim.keymap.set('i', '<S-Tab>', function()
+                    --    if vim.fn['vsnip#jumpable'](-1) then
+                    --        return '<Plug>(vsnip-jump-prev)'
+                    --    else
+                    --        return '<S-Tab>'
+                    --    end
+                    --end, keyopt)
                 end,
             },
             'onsails/lspkind.nvim',
@@ -381,6 +392,14 @@ require("lazy").setup({
             vim.keymap.set('n', '<F12>', function() require('dap').step_out() end, keyopt)
             vim.keymap.set('n', '<Leader>b', function() require('dap').toggle_breakpoint() end, keyopt)
             vim.keymap.set('n', '<Leader>dr', function() require('dap').repl.open() end)
+        end,
+    },
+    {
+        'MeanderingProgrammer/markdown.nvim',
+        event = 'BufRead',
+        name = 'render-markdown', -- Only needed if you have another plugin named markdown.nvim
+        config = function()
+            require('render-markdown').setup({})
         end,
     }
 })
