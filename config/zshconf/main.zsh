@@ -1,5 +1,6 @@
 # Set up the prompt
 bindkey -e
+setopt no_flow_control
 
 autoload -Uz promptinit && promptinit
 autoload -Uz colors && colors
@@ -21,6 +22,21 @@ function add_path_if_exists {
     add_path $1
   fi
 }
+
+# buffer stack
+show_buffer_stack() {
+  buffer_stack=$'\n'"%F{248}> $LBUFFER%f"
+  zle push-line-or-edit
+  zle reset-prompt
+}
+
+clear_buffer_stack() {
+    buffer_stack=''
+}
+
+add-zsh-hook precmd clear_buffer_stack
+zle -N show_buffer_stack
+bindkey "^q" show_buffer_stack
 
 zstyle ':vcs_info:git:*' check-for-changes true
 zstyle ':vcs_info:git:*' stagedstr "%{$fg[yellow]%}!%{$reset_color%}"
@@ -47,15 +63,14 @@ function prompt_host() {
 }
 prompt_host
 
-vcs_info_msg_0_="A"
 PROMPT=""
 PROMPT+="%{$fg[red]%}[%*]%{$reset_color%}"  # timestamp
 PROMPT+=" %{$fg[cyan]%}$prompt_host_msg%{$reset_color%}"  # host
 PROMPT+=" %?"  # status
 PROMPT+=' ${vcs_info_msg_0_}'  # Zsh VCS
 PROMPT+="%{$fg[green]%}%~%{$reset_color%}"  # current directory
-PROMPT+="
-%% "  # shell
+PROMPT+='${buffer_stack}'
+PROMPT+=$'\n'"%% "
 
 HISTSIZE=10000
 SAVEHIST=10000
