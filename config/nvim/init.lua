@@ -131,7 +131,7 @@ require("lazy").setup({
                 ensure_installed = 'all',
                 highlight = { enable = true },
                 indent = {
-                    enable = 'all',
+                    enable = true,
                 },
             }
         end,
@@ -175,6 +175,10 @@ require("lazy").setup({
                                 buffer = bufnr,
                                 callback = function() vim.lsp.buf.format() end,
                             })
+
+                        end
+                        if client.supports_method("textDocument/inlayHint") then
+                            vim.lsp.inlay_hint.enable()
                         end
                     end,
 
@@ -315,7 +319,6 @@ require("lazy").setup({
             local null_ls = require('null-ls')
             null_ls.setup({
                 sources = {
-                    null_ls.builtins.diagnostics.textlint.with({ filetypes = { 'markdown' } }),
                 },
             })
         end,
@@ -415,7 +418,7 @@ vim.opt.shiftwidth = 4
 vim.opt.expandtab = true
 vim.opt.tabstop = 4
 vim.opt.softtabstop = 4
-vim.opt.laststatus = 2
+vim.opt.laststatus = 3
 vim.opt.backupdir = vim.fn.stdpath('cache') .. '/backup'
 vim.opt.undofile = true
 vim.opt.undodir = vim.fn.stdpath('cache') .. '/undo'
@@ -464,21 +467,21 @@ vim.keymap.set('n', 'ss', ':sp<CR>:terminal<CR>', { noremap = true, silent = tru
 vim.keymap.set('t', '<ESC>', '<C-\\><C-n><Plug>(send-esc-inner-term)', { noremap = true })
 vim.keymap.set('n', '<Plug>(send-esc-inner-term)<ESC>', 'i<ESC>', { noremap = true })
 
-vim.api.nvim_create_augroup('ChangeCursorLine', {})
-vim.api.nvim_create_autocmd({ 'VimEnter', 'WinEnter', 'BufWinEnter' }, {
-    group = 'ChangeCursorLine',
-    pattern = '*',
-    command = 'setlocal cursorline',
-})
-vim.api.nvim_create_autocmd('BufEnter', {
-    group = 'ChangeCursorLine',
-    pattern = '*',
-    command = 'setlocal cursorline',
-})
-vim.api.nvim_create_autocmd('BufLeave', {
-    group = 'ChangeCursorLine',
-    pattern = '*',
-    command = 'setlocal nocursorline',
-})
 
+vim.api.nvim_set_hl(0, 'NormalNC', { bg = '#181818' })
+vim.api.nvim_create_augroup('ActiveWindow', {})
+vim.api.nvim_create_autocmd({'WinEnter', 'BufEnter'}, {
+    group = 'ActiveWindow',
+    pattern = '*',
+    callback = function()
+        vim.opt_local.cursorline = true
+    end,
+})
+vim.api.nvim_create_autocmd('WinLeave', {
+    group = 'ActiveWindow',
+    pattern = '*',
+    callback = function()
+        vim.opt_local.cursorline = false
+    end,
+})
 
