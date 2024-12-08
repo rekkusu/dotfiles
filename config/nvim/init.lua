@@ -169,19 +169,6 @@ require("lazy").setup({
             {
                 'williamboman/mason-lspconfig.nvim',
                 config = function()
-                    local on_attach = function(client, bufnr)
-                        if client.server_capabilities.documentFormattingProvider then
-                            vim.api.nvim_create_autocmd({ 'BufWritePre' }, {
-                                buffer = bufnr,
-                                callback = function() vim.lsp.buf.format() end,
-                            })
-
-                        end
-                        if client.supports_method("textDocument/inlayHint") then
-                            vim.lsp.inlay_hint.enable()
-                        end
-                    end,
-
                     require('mason-lspconfig').setup_handlers({
                         function(server)
                             require('lspconfig')[server].setup({
@@ -354,7 +341,7 @@ require("lazy").setup({
 
     -- Tools for development
     {
-        'TimUntersberger/neogit',
+        'NeogitOrg/neogit',
         opts = {},
     },
     {
@@ -365,7 +352,7 @@ require("lazy").setup({
     },
     {
         'zbirenbaum/copilot.lua',
-        event = 'InsertEnter',
+        event = 'BufRead',
         opts = {
             suggestion = {
                 enabled = true,
@@ -382,6 +369,52 @@ require("lazy").setup({
         event = 'InsertEnter',
         config = function ()
             require("copilot_cmp").setup()
+        end,
+    },
+    {
+        "CopilotC-Nvim/CopilotChat.nvim",
+        event = 'BufRead',
+        branch = "canary",
+        build = "make tiktoken",
+        config = function()
+            local select = require("CopilotChat.select")
+            require("CopilotChat").setup({
+                prompts = {
+                    Explain = {
+                        prompt = '/COPILOT_EXPLAIN カーソル上のコードの説明を段落をつけて書いてください。',
+                    },
+                    Tests = {
+                        prompt = '/COPILOT_TESTS カーソル上のコードの詳細な単体テスト関数を書いてください。',
+                    },
+                    Fix = {
+                        prompt = '/COPILOT_FIX このコードには問題があります。バグを修正したコードに書き換えてください。',
+                    },
+                    Optimize = {
+                        prompt = '/COPILOT_REFACTOR 選択したコードを最適化し、パフォーマンスと可読性を向上させてください。',
+                    },
+                    Docs = {
+                        prompt = '/COPILOT_REFACTOR 選択したコードのドキュメントを書いてください。ドキュメントをコメントとして追加した元のコードを含むコードブロックで回答してください。使用するプログラミング言語に最も適したドキュメントスタイルを使用してください（例：JavaScriptのJSDoc、Pythonのdocstringsなど）',
+                    },
+                    FixDiagnostic = {
+                        prompt = 'ファイル内の次のような診断上の問題を解決してください：',
+                        selection = select.diagnostics,
+                    },
+                    CTF = {
+                        prompt = '/COPILOT_EXPLAIN このファイルはCTFの問題として出題されたもので、どこかに確実に脆弱性があります。データの整合性を確認して脆弱性のある場所を教えてください',
+                        selection = select.buffer
+                    }
+                }
+            })
+
+            local keyopt = { silent = true, noremap = true }
+            vim.keymap.set({'n', 'v'}, '<leader>cch', function()
+                local actions = require("CopilotChat.actions")
+                require("CopilotChat.integrations.telescope").pick(actions.help_actions())
+            end, keyopt)
+            vim.keymap.set({'n', 'v'}, '<leader>ccp', function()
+                local actions = require("CopilotChat.actions")
+                require("CopilotChat.integrations.telescope").pick(actions.prompt_actions())
+            end, keyopt)
         end,
     },
     {
@@ -404,7 +437,31 @@ require("lazy").setup({
         config = function()
             require('render-markdown').setup({})
         end,
-    }
+    },
+    {
+        'stevearc/conform.nvim',
+        event = { "BufWritePre" },
+        cmd = { "ConformInfo" },
+        config = function()
+            require('conform').setup({
+                log_level = vim.log.levels.DEBUG,
+                formatters_by_ft = {
+                    go = { "gofumpt", "goimports", "goimports-reviser" },
+                },
+                format_on_save = {
+                    timeout_ms = 500,
+                    lsp_format = "fallback",
+                },
+            })
+            vim.api.nvim_create_autocmd("BufWritePre", {
+                pattern = "*",
+                callback = function(args)
+                    require("conform").format({ bufnr = args.buf })
+                end,
+            })
+            vim.o.formatexpr = "v:lua.require'conform'.formatexpr()"
+        end,
+    },
 })
 
 
