@@ -76,7 +76,7 @@ require("lazy").setup({
                         ["S"] = "split_with_window_picker",
                         ["s"] = "vsplit_with_window_picker",
                         ["P"] = {
-                            "toggle_preview", 
+                            "toggle_preview",
                             config = { use_float = true, use_image_nvim = true },
                         },
                     },
@@ -155,48 +155,26 @@ require("lazy").setup({
 
     -- Language Server Manager
     {
-        'williamboman/mason.nvim',
+        'mason-org/mason.nvim',
         opts = {},
+    },
+    {
+        'neovim/nvim-lspconfig',
+        config = function()
+            vim.lsp.config('lua_ls', {
+                settings = {
+                    Lua = {
+                        diagnostics = {
+                            globals = { 'vim' }
+                        },
+                    }
+                }
+            });
+        end,
         dependencies = {
-            'hrsh7th/cmp-nvim-lsp',
             {
-                'neovim/nvim-lspconfig',
-                config = function()
-                    local lspconfig = require('lspconfig')
-                    lspconfig.metals.setup{}
-                end,
-            },
-            {
-                'williamboman/mason-lspconfig.nvim',
-                config = function()
-                    require('mason-lspconfig').setup_handlers({
-                        function(server)
-                            require('lspconfig')[server].setup({
-                                on_attach = on_attach,
-                            })
-                        end,
-                        ['lua_ls'] = function()
-                            require('lspconfig')['lua_ls'].setup({
-                                on_attach = on_attach,
-                                settings = {
-                                    Lua = {
-                                        diagnostics = {
-                                            globals = { 'vim' }
-                                        },
-                                    }
-                                }
-                            })
-                        end,
-                        ['clangd'] = function()
-                            require('lspconfig')['clangd'].setup({
-                                on_attach = on_attach,
-                                capabilities = {
-                                    offsetEncoding = "utf-8",
-                                },
-                            })
-                        end,
-                    })
-                end,
+                'mason-org/mason-lspconfig.nvim',
+                opts = {},
             },
         }
     },
@@ -246,10 +224,11 @@ require("lazy").setup({
                     },
                     {
                         name = "copilot",
-                        priority = 1,
+                        priority = 2,
                     },
                     {
                         name = 'buffer',
+                        priority = 2,
                         option = {
                             keyword_length = 3,
                         },
@@ -276,7 +255,7 @@ require("lazy").setup({
                 'hrsh7th/vim-vsnip',
                 config = function()
                     local keyopt = { expr = true }
-                    
+
                     --vim.keymap.set('i', '<Tab>', function()
                     --    if vim.fn['vsnip#jumpable'](1)  then
                     --        print('vsnip')
@@ -306,9 +285,13 @@ require("lazy").setup({
             local null_ls = require('null-ls')
             null_ls.setup({
                 sources = {
+                    require("none-ls.diagnostics.eslint"),
                 },
             })
         end,
+        dependencies = {
+            "nvimtools/none-ls-extras.nvim",
+        },
     },
     {
         'glepnir/lspsaga.nvim',
@@ -367,14 +350,14 @@ require("lazy").setup({
     {
         'zbirenbaum/copilot-cmp',
         event = 'InsertEnter',
-        config = function ()
+        config = function()
             require("copilot_cmp").setup()
         end,
     },
     {
-        "CopilotC-Nvim/CopilotChat.nvim",
+        "CopilotC-Nvim/CopilotChat.nvim", -- {{{
         event = 'BufRead',
-        branch = "canary",
+        branch = "main",
         build = "make tiktoken",
         config = function()
             local select = require("CopilotChat.select")
@@ -393,7 +376,8 @@ require("lazy").setup({
                         prompt = '/COPILOT_REFACTOR 選択したコードを最適化し、パフォーマンスと可読性を向上させてください。',
                     },
                     Docs = {
-                        prompt = '/COPILOT_REFACTOR 選択したコードのドキュメントを書いてください。ドキュメントをコメントとして追加した元のコードを含むコードブロックで回答してください。使用するプログラミング言語に最も適したドキュメントスタイルを使用してください（例：JavaScriptのJSDoc、Pythonのdocstringsなど）',
+                        prompt =
+                        '/COPILOT_REFACTOR 選択したコードのドキュメントを書いてください。ドキュメントをコメントとして追加した元のコードを含むコードブロックで回答してください。使用するプログラミング言語に最も適したドキュメントスタイルを使用してください（例：JavaScriptのJSDoc、Pythonのdocstringsなど）',
                     },
                     FixDiagnostic = {
                         prompt = 'ファイル内の次のような診断上の問題を解決してください：',
@@ -407,15 +391,31 @@ require("lazy").setup({
             })
 
             local keyopt = { silent = true, noremap = true }
-            vim.keymap.set({'n', 'v'}, '<leader>cch', function()
+            vim.keymap.set({ 'n', 'v' }, '<leader>cch', function()
                 local actions = require("CopilotChat.actions")
                 require("CopilotChat.integrations.telescope").pick(actions.help_actions())
             end, keyopt)
-            vim.keymap.set({'n', 'v'}, '<leader>ccp', function()
+            vim.keymap.set({ 'n', 'v' }, '<leader>ccp', function()
                 local actions = require("CopilotChat.actions")
                 require("CopilotChat.integrations.telescope").pick(actions.prompt_actions())
             end, keyopt)
         end,
+        -- }}}
+    },
+    {
+        "yetone/avante.nvim", -- {{{
+        event = "VeryLazy",
+        opts = {
+            provider = "copilot",
+            copilot = {
+                model = "claude-3.7-sonnet",
+            },
+        },
+        build = "make",
+        dependencies = {
+            "stevearc/dressing.nvim",
+        },
+        -- }}}
     },
     {
         'mfussenegger/nvim-dap',
@@ -504,6 +504,11 @@ vim.opt.winblend = 20
 
 vim.opt.formatoptions:append('mM')
 
+vim.diagnostic.config({
+    virtual_text  = true,
+    virtual_lines = { current_line = true },
+})
+
 vim.keymap.set('n', 'tn', ':<C-u>tabedit<CR>:<C-u>tabnext<CR>', { noremap = true, silent = true })
 vim.keymap.set('n', 'td', ':<C-u>tabclose<CR>', { noremap = true, silent = true })
 vim.keymap.set('n', 'th', ':<C-u>tabprev<CR>', { noremap = true, silent = true })
@@ -527,7 +532,7 @@ vim.keymap.set('n', '<Plug>(send-esc-inner-term)<ESC>', 'i<ESC>', { noremap = tr
 
 vim.api.nvim_set_hl(0, 'NormalNC', { bg = '#181818' })
 vim.api.nvim_create_augroup('ActiveWindow', {})
-vim.api.nvim_create_autocmd({'WinEnter', 'BufEnter'}, {
+vim.api.nvim_create_autocmd({ 'WinEnter', 'BufEnter' }, {
     group = 'ActiveWindow',
     pattern = '*',
     callback = function()
@@ -542,3 +547,11 @@ vim.api.nvim_create_autocmd('WinLeave', {
     end,
 })
 
+vim.api.nvim_create_autocmd('LspAttach', {
+    callback = function(ev)
+        local client = vim.lsp.get_client_by_id(ev.data.client_id)
+        if client:supports_method('textDocument/completion') then
+            vim.lsp.completion.enable(true, client.id, ev.buf, { autotrigger = true })
+        end
+    end,
+})
